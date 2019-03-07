@@ -21,7 +21,7 @@ juicyBot.on('guildMemberAdd', async member => {
 });
 
 juicyBot.on('message', async msg => {
-		if (msg.author.id === '269167210331766794') return; // return if its da  bot
+		if (msg.author.id === '269167210331766794') return; // return if its da bot
 		//if (msg.channel.id === '290482343179845643' || msg.channel.id === '349419472446029845') {
 		const userID = users.findIndex(user => user.uid === msg.author.id);
 
@@ -74,7 +74,9 @@ juicyBot.on('message', async msg => {
 			}
 			msg.channel.send({embed})
 		}
-		//}
+		if (msg.content.startsWith('!getrank')) {
+			msg.channel.send('You are rank ' + getRank(msg.author.id) + ' out of ' + users.length)
+		}
 	}
 );
 
@@ -144,7 +146,7 @@ function getRanks(length) {
 }
 
 function getRank(uid) {
-
+	return getRanks(users.length).findIndex(rank => rank.uid === uid) + 1
 }
 
 async function isUserInDB(uid, collection) {
