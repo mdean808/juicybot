@@ -63,17 +63,16 @@ juicyBot.on('message', async msg => {
 		}
 		if (msg.content.startsWith('!ranks')) {
 			let ranks = getRanks(msg.content.split(' ')[1]);
-			const ranksEmbed = new Discord.RichEmbed()
-				.setTitle("Contact Unicorn if you have an issue.")
+			const embed = new Discord.RichEmbed()
+				.setTitle("")
 				.setAuthor("Juicy Nation Chatting Ranks")
 				.setColor(0xe67e22)
-				.setDescription("These are the top " + msg.content.split(' ')[1] + " ranks in the Juicy Nation!")
+				.setDescription("These are the top " + (msg.content.split(' ')[1] || 5) + " ranks in the Juicy Nation!")
 				.setThumbnail("https://cdn.discordapp.com/icons/290482343179845643/f03ae1ab7863948922d1083c503847d8.webp");
 			for (let i = 0; i < ranks.length; i++) {
-				console.log(ranks[i].uid);
-				ranksEmbed.addField(msg.guild.members.get(ranks[i].uid).nickname || msg.guild.members.get(ranks[i].uid).username, ranks[i].points + " points")
+				embed.addField((msg.guild.members.get(ranks[i].uid).nickname || juicyBot.users.get(ranks[i].uid).username), ranks[i].points + " points")
 			}
-			msg.channel.send({ranksEmbed})
+			msg.channel.send({embed})
 		}
 		//}
 	}
@@ -140,7 +139,7 @@ function getRanks(length) {
 		}
 	}
 	let ranks =  users.sort(ranking);
-	ranks.length = length || 5;
+	ranks.length = Math.min(ranks.length, length || 5);
 	return ranks
 }
 
