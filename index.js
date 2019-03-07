@@ -12,9 +12,9 @@ const dbName = process.env.MONGODB_NAME;
 let users = [];
 
 //dev
-//juicyBot.login(process.env.DEV_TOKEN);
+juicyBot.login(process.env.DEV_TOKEN);
 // production
-juicyBot.login(process.env.PROD_TOKEN);
+//juicyBot.login(process.env.PROD_TOKEN);
 
 juicyBot.on('guildMemberAdd', async member => {
 	//console.log(member.user.addRole())
@@ -60,6 +60,20 @@ juicyBot.on('message', async msg => {
 				const points = await getPoints(msg.author.id);
 				msg.channel.send((msg.guild.members.get(msg.author.id).nickname || msg.author.username) + " has " + parseInt(points) + ' chatting points.')
 			}
+		}
+		if (msg.content.startsWith('!ranks')) {
+			let ranks = getRanks(msg.content.split(' ')[1]);
+			const ranksEmbed = new Discord.RichEmbed()
+				.setTitle("Contact Unicorn if you have an issue.")
+				.setAuthor("Juicy Nation Chatting Ranks")
+				.setColor(0xe67e22)
+				.setDescription("These are the top " + msg.content.split(' ')[1] + " ranks in the Juicy Nation!")
+				.setThumbnail("https://cdn.discordapp.com/icons/290482343179845643/f03ae1ab7863948922d1083c503847d8.webp");
+			for (let i = 0; i < ranks.length; i++) {
+				console.log(ranks[i].uid);
+				ranksEmbed.addField(msg.guild.members.get(ranks[i].uid).nickname || msg.guild.members.get(ranks[i].uid).username, ranks[i].points + " points")
+			}
+			msg.channel.send({ranksEmbed})
 		}
 		//}
 	}
@@ -114,6 +128,24 @@ function getPoints(uid) {
 	let user = users.filter(user => user.uid === uid)[0];
 	if (user) return user.points;
 	else return 0;
+}
+
+function getRanks(length) {
+	function ranking(a, b) {
+		if (a.points > b.points) {
+			return -1
+		}
+		if (a.points < b.points) {
+			return 1
+		}
+	}
+	let ranks =  users.sort(ranking);
+	ranks.length = length || 5;
+	return ranks
+}
+
+function getRank(uid) {
+
 }
 
 async function isUserInDB(uid, collection) {
