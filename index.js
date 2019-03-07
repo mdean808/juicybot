@@ -67,7 +67,7 @@ juicyBot.on('message', async msg => {
 				.setTitle("")
 				.setAuthor("Juicy Nation Chatting Ranks")
 				.setColor(0xe67e22)
-				.setDescription("These are the top " + (msg.content.split(' ')[1] || 5) + " ranks in the Juicy Nation!")
+				.setDescription("These are the top " + (ranks.length) + " ranks in the Juicy Nation!")
 				.setThumbnail("https://cdn.discordapp.com/icons/290482343179845643/f03ae1ab7863948922d1083c503847d8.webp");
 			for (let i = 0; i < ranks.length; i++) {
 				embed.addField((msg.guild.members.get(ranks[i].uid).nickname || juicyBot.users.get(ranks[i].uid).username), ranks[i].points + " points")
@@ -87,7 +87,7 @@ juicyBot.on('error', console.error);
 juicyBot.on('ready', async () => {
 	console.log('Getting JUICY!');
 	await loadData();
-	setInterval(saveData, 30000);
+	setInterval(saveData, 90000);
 });
 
 juicyBot.on('disconnect', () => console.log('Just disconnected'));
@@ -141,7 +141,8 @@ function getRanks(length) {
 		}
 	}
 	let ranks =  users.sort(ranking);
-	ranks.length = Math.min(ranks.length, length || 5);
+	ranks.length = Math.min(ranks.length, (parseInt(length) || 5));
+	console.log(ranks.length);
 	return ranks
 }
 
