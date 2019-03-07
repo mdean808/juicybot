@@ -12,9 +12,9 @@ const dbName = process.env.MONGODB_NAME;
 let users = [];
 
 //dev
-juicyBot.login(process.env.DEV_TOKEN);
+//juicyBot.login(process.env.DEV_TOKEN);
 // production
-//juicyBot.login(process.env.PROD_TOKEN);
+juicyBot.login(process.env.PROD_TOKEN);
 
 juicyBot.on('guildMemberAdd', async member => {
 	//console.log(member.user.addRole())
