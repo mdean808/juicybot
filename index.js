@@ -1,5 +1,7 @@
 const Discord = require("discord.js");
 const mongo = require('mongodb');
+const cheerio = require('cheerio');
+const request = require('request');
 require('dotenv').config();
 
 const juicyBot = new Discord.Client();
@@ -44,6 +46,7 @@ juicyBot.on('message', async msg => {
 			if (karmaData) msg.channel.send(karmaData);
 		}
 		if (msg.content.startsWith('!karma')) {
+			msg.channel.startTyping();
 			if (msg.mentions.users.array().length > 0) {
 				const karma = await getKarma(msg.mentions.users.array()[0].id);
 				msg.channel.send(msg.guild.members.get(msg.mentions.users.array()[0].id).nickname || msg.mentions.users.array()[0].username + " has " + parseInt(karma) + ' karma.')
@@ -51,8 +54,10 @@ juicyBot.on('message', async msg => {
 				const karma = await getKarma(msg.author.id);
 				msg.channel.send(msg.guild.members.get(msg.author.id).nickname || msg.author.username + " has " + parseInt(karma) + ' karma.')
 			}
+			msg.channel.stopTyping();
 		}
 		if (msg.content.startsWith('!points')) {
+			msg.channel.startTyping();
 			if (msg.mentions.users.array().length > 0) {
 				const points = getPoints(msg.mentions.users.array()[0].id);
 				msg.channel.send(msg.guild.members.get(msg.mentions.users.array()[0].id).nickname || msg.mentions.users.array()[0].username + " has " + parseInt(points) + ' chatting points.')
@@ -60,8 +65,10 @@ juicyBot.on('message', async msg => {
 				const points = await getPoints(msg.author.id);
 				msg.channel.send((msg.guild.members.get(msg.author.id).nickname || msg.author.username) + " has " + parseInt(points) + ' chatting points.')
 			}
+			msg.channel.stopTyping();
 		}
 		if (msg.content.startsWith('!ranks')) {
+			msg.channel.startTyping();
 			let ranks = getRanks(msg.content.split(' ')[1]);
 			const embed = new Discord.RichEmbed()
 				.setTitle("")
@@ -72,10 +79,46 @@ juicyBot.on('message', async msg => {
 			for (let i = 0; i < ranks.length; i++) {
 				embed.addField((msg.guild.members.get(ranks[i].uid).nickname || juicyBot.users.get(ranks[i].uid).username), ranks[i].points + " points")
 			}
-			msg.channel.send({embed})
+			msg.channel.send({embed});
+			msg.channel.stopTyping();
 		}
 		if (msg.content.startsWith('!getrank')) {
-			msg.channel.send('You are rank ' + getRank(msg.author.id) + ' out of ' + users.length)
+			msg.channel.startTyping();
+			msg.channel.send('You are rank ' + getRank(msg.author.id) + ' out of ' + users.length);
+			msg.channel.stopTyping();
+		}
+		if (msg.content.startsWith('!dd2news') || msg.content.startsWith('!ddanews') || msg.content.startsWith('!ddnews')) {
+			try {
+				msg.channel.startTyping();
+				request('https://forums.dungeondefenders.com/', function (error, response, html) {
+					const $ = cheerio.load(html);
+					let news = [{
+						title: $('.ipsTruncate').text(),
+						url: $('.ipsTruncate').attr('href'),
+					}];
+					for (let i = 0; i < $('.landingStats').first().children().eq(1).children().length; i++) {
+						let text = $('.landingStats').first().children().eq(1).children().eq(i).children().first().text();
+						let url = $('.landingStats').first().children().eq(1).children().eq(i).children().first().children().first().attr('href');
+						news.push({title: text, url: url})
+					}
+					const embed = new Discord.RichEmbed()
+						.setTitle("")
+						.setAuthor("Dungeon Defenders News")
+						.setColor(0xbd03d4)
+						.setDescription("Top news articles from https://dungeondefenders.com")
+						.setThumbnail("https://vignette.wikia.nocookie.net/dundef/images/7/70/DunDef_2_Logo.png/revision/latest?cb=20130603230142") //http://favicon.yandex.net/favicon/dungeondefenders.com
+						.setFooter("Contact Unicorn if something isn't right.");
+					for (let i = 0; i < news.length; i++) {
+						embed.addField(news[i].title, news[i].url)
+					}
+					msg.channel.stopTyping();
+					msg.channel.send({embed})
+				});
+			} catch (e) {
+				console.log(e)
+				msg.channel.send('There was an error getting the news. Please contact <@247521739398053888>')
+				msg.channel.stopTyping();
+			}
 		}
 	}
 );
@@ -140,7 +183,8 @@ function getRanks(length) {
 			return 1
 		}
 	}
-	let ranks =  users.sort(ranking);
+
+	let ranks = users.sort(ranking);
 	ranks.length = Math.min(ranks.length, (parseInt(length) || 5));
 	console.log(ranks.length);
 	return ranks
